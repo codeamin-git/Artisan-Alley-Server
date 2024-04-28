@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 5000;
@@ -31,13 +31,68 @@ async function run() {
 
     const artsCollection = client.db('artsDB').collection('arts')
 
+    // read data for home page
+    app.get('/getCrafts', async(req, res)=>{
+      const limit = parseInt(req.query.limit) || 6;
+      const cursor = artsCollection.find().limit(limit)
+      const result = await cursor.toArray()
+      res.send(result)
+    })
 
+    // read data for all art & craft items
+    app.get('/getAllCrafts', async(req, res)=>{
+      const cursor = artsCollection.find();
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
+    // read data by user email
+    app.get('/myList/:email', async(req, res)=>{
+      const email = req.params.email;
+      const query = {email: email}
+      const cursor = artsCollection.find(query);
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
+    // view details of specific id
+    app.get('/getCrafts/:id', async(req, res)=> {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id)}
+      const result = await artsCollection.findOne(query)
+      res.send(result)
+    })
 
     // create data
     app.post('/addCrafts', async(req, res)=>{
       const newArts = req.body;
       console.log(newArts);
       const result = await artsCollection.insertOne(newArts)
+      res.send(result)
+    })
+
+    // update data
+    app.get('/update/:id', async(req, res)=>{
+      const result = await artsCollection.findOne({_id: new ObjectId(req.params.id)});
+      res.send(result)
+    })
+
+    app.put('/updateItem/:id', async(req, res)=>{
+      const query = { _id: new ObjectId(req.params.id) }
+      const data = {
+        $set: {
+          image: req.body.image,
+          itemName: req.body.itemName,
+          subcategory: req.body.subcategory,
+          customization: req.body.customization,
+          description: req.body.description,
+          price: req.body.price,
+          rating: req.body.rating,
+          processingTime: req.body.processingTime,
+          stockStatus: req.body.stockStatus,
+        }
+      }
+      const result = await artsCollection.updateOne(query, data)
       res.send(result)
     })
     // Send a ping to confirm a successful connection
