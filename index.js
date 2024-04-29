@@ -37,7 +37,14 @@ async function run() {
       res.send(result)
     })
 
-    
+    app.get('/subCat/:subcategory', async (req, res) => {
+      const subcategory = req.params.subcategory;
+      const query = { subcategory: subcategory };
+      const cursor = artsCollection.find(query);
+      const result = await cursor.toArray();
+      console.log(result);
+      res.send(result);
+  });
     // read data for home page
     app.get('/getCrafts', async(req, res)=>{
       const limit = parseInt(req.query.limit) || 6;
