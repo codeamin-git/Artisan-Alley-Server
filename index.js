@@ -47,13 +47,31 @@ async function run() {
     })
 
     // read data by user email
-    app.get('/myList/:email', async(req, res)=>{
-      const email = req.params.email;
-      const query = {email: email}
-      const cursor = artsCollection.find(query);
-      const result = await cursor.toArray()
-      res.send(result)
-    })
+    // app.get('/myList/:email', async(req, res)=>{
+    //   const email = req.params.email;
+    //   const query = {email: email}
+    //   const cursor = artsCollection.find(query);
+    //   const result = await cursor.toArray()
+    //   res.send(result)
+    // })
+
+    // customization
+    app.get('/myList/:email', async (req, res) => {
+      const { email } = req.params;
+      const { customization } = req.query;
+  
+      let query = { email };
+      if (customization && customization !== 'all') {
+          query.customization = customization;
+      }
+  
+      try {
+          const items = await artsCollection.find(query).toArray();
+          res.json(items);
+      } catch (error) {
+          res.status(500).json({ message: error.message });
+      }
+  });  
 
     // view details of specific id
     app.get('/getCrafts/:id', async(req, res)=> {
